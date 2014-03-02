@@ -4,6 +4,7 @@ SparkCore-LiquidCrystal
 An Implementation of Arduino's LiquidCrystal library for the Spark Core
 
 Grab the RAW version of each file and place into your web IDE as follows:
+
 ![image](http://i.imgur.com/ovx14kb.png)
 
 If you are building locally, place the files here:
