@@ -3,6 +3,11 @@ SparkCore-LiquidCrystal
 
 An Implementation of Arduino's LiquidCrystal library for the Spark Core
 
+Universally Supports:
+* Standard Hitachi HD44780 based LCDs in 4-bit mode
+* Adafruit's 16x2 OLED Display (Winstar)
+* Sparkfun's 16x2 OLED Display (ADH Technology Co. Ltd.)
+
 Grab the RAW version of each file and place into your web IDE as follows:
 
 ![image](http://i.imgur.com/ovx14kb.png)

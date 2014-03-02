@@ -64,10 +64,12 @@ void LiquidCrystal::init(uint8_t fourbitmode, uint8_t rs, uint8_t rw, uint8_t en
   _data_pins[6] = d6;
   _data_pins[7] = d7; 
   
-  if (fourbitmode)
+  // Always 4-bit mode, don't waste pins!
+  //
+  //if (fourbitmode)
     _displayfunction = LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS;
-  else 
-    _displayfunction = LCD_8BITMODE | LCD_1LINE | LCD_5x8DOTS;
+  //else 
+    //_displayfunction = LCD_8BITMODE | LCD_1LINE | LCD_5x8DOTS;
 }
 
 void LiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
@@ -99,70 +101,45 @@ void LiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
   if (_rw_pin != 255) { 
     digitalWrite(_rw_pin, LOW);
   }
+
+  // 4-Bit initialization sequence from Technobly
+  write4bits(0x03);         // Put back into 8-bit mode
+  delayMicroseconds(5000);
+
+  write4bits(0x08);         // Comment this out for V1 OLED
+  delayMicroseconds(5000);  // Comment this out for V1 OLED
   
-  //put the LCD into 4 bit or 8 bit mode
-  if (! (_displayfunction & LCD_8BITMODE)) {
-    // this is according to the hitachi HD44780 datasheet
-    // figure 24, pg 46
-
-    // we start in 8bit mode, try to set 4 bit mode
-    write4bits(0x03);
-    delayMicroseconds(4500); // wait min 4.1ms
-
-    // second try
-    write4bits(0x03);
-    delayMicroseconds(4500); // wait min 4.1ms
-    
-    // third go!
-    write4bits(0x03); 
-    delayMicroseconds(150);
-
-    // finally, set to 8-bit interface
-    write4bits(0x02); 
-  } else {
-    // this is according to the hitachi HD44780 datasheet
-    // page 45 figure 23
-
-    // Send function set command sequence
-    command(LCD_FUNCTIONSET | _displayfunction);
-    delayMicroseconds(4500);  // wait more than 4.1ms
-
-    // second try
-    command(LCD_FUNCTIONSET | _displayfunction);
-    delayMicroseconds(150);
-
-    // third go
-    command(LCD_FUNCTIONSET | _displayfunction);
-  }
-
-  // finally, set # lines, font size, etc.
-  command(LCD_FUNCTIONSET | _displayfunction);  
-
-  // turn the display on with no cursor or blinking default
-  _displaycontrol = LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF;  
-  display();
-
-  // clear it off
-  clear();
-
-  // Initialize to default text direction (for romance languages)
-  _displaymode = LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT;
-  // set the entry mode
-  command(LCD_ENTRYMODESET | _displaymode);
-
+  write4bits(0x02);         // Put into 4-bit mode
+  delayMicroseconds(5000);
+  write4bits(0x02);
+  delayMicroseconds(5000);
+  write4bits(0x08);
+  delayMicroseconds(5000);
+  
+  command(LCD_DISPLAYCONTROL);                  // Turn Off
+  delayMicroseconds(5000);
+  command(LCD_FUNCTIONSET | _displayfunction);  // Set # lines, font size, etc.
+  delayMicroseconds(5000);
+  clear();                                      // Clear Display
+  command(LCD_ENTRYMODESET | LCD_ENTRYLEFT);    // Set Entry Mode
+  delayMicroseconds(5000);
+  home();                                       // Home Cursor
+  delayMicroseconds(5000);
+  command(LCD_DISPLAYCONTROL | LCD_DISPLAYON);  // Turn On - enable cursor & blink
+  delayMicroseconds(5000);
 }
 
 /********** high level commands, for the user! */
 void LiquidCrystal::clear()
 {
   command(LCD_CLEARDISPLAY);  // clear display, set cursor position to zero
-  delayMicroseconds(2000);  // this command takes a long time!
+  delayMicroseconds(5000);  // this command takes a long time!
 }
 
 void LiquidCrystal::home()
 {
   command(LCD_RETURNHOME);  // set cursor position to zero
-  delayMicroseconds(2000);  // this command takes a long time!
+  delayMicroseconds(5000);  // this command takes a long time!
 }
 
 void LiquidCrystal::setCursor(uint8_t col, uint8_t row)
@@ -171,7 +148,6 @@ void LiquidCrystal::setCursor(uint8_t col, uint8_t row)
   if ( row > _numlines ) {
     row = _numlines-1;    // we count rows starting w/0
   }
-  
   command(LCD_SETDDRAMADDR | (col + row_offsets[row]));
 }
 
@@ -291,7 +267,6 @@ void LiquidCrystal::write4bits(uint8_t value) {
     pinMode(_data_pins[i], OUTPUT);
     digitalWrite(_data_pins[i], (value >> i) & 0x01);
   }
-
   pulseEnable();
 }
 
@@ -300,6 +275,5 @@ void LiquidCrystal::write8bits(uint8_t value) {
     pinMode(_data_pins[i], OUTPUT);
     digitalWrite(_data_pins[i], (value >> i) & 0x01);
   }
-  
   pulseEnable();
 }
